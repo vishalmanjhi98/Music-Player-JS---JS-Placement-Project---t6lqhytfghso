@@ -13,6 +13,7 @@ const previous = document.getElementById("previous");
 const forwardBtn = document.getElementById("forward");
 const backwardBtn = document.getElementById("backward");
 const searchSongs = document.getElementById("searchsong");
+//Attach the event listener to the element
 
 let previewData;
 let music_list = [];
@@ -21,19 +22,17 @@ let isRandom = false;
 let isplaying = false;
 let updateTimer;
 let track_index = 0;
-
-//Api fetch
+if (localStorage) {
+  let data = JSON.parse(localStorage.getItem("playlist"));
+  if (data) {
+    music_list = data;
+  }
+}
 
 const apiFetch = async () => {
-  const result = await fetch(
-    "https://api.napster.com/v2.1/tracks/top?apikey=MzI1MDgzYTItNzExYS00ODRlLTgzMjMtYmMzYmMzM2E2M2Q2"
-  );
-  const data = await result.json();
   const list = document.getElementById("music_list");
   const an = document.getElementById("structure");
-  music_list = data?.tracks;
-  console.log(music_list);
-  data?.tracks?.forEach((item, index) => {
+  music_list?.forEach((item, index) => {
     const child = document.createElement("div");
     child.className = "musicListDiv";
     const img = document.createElement("img");
@@ -49,14 +48,11 @@ const apiFetch = async () => {
       now_playing.innerText = item.name;
       audioPlay(item.previewURL);
     };
-
     an.appendChild(child);
     list.appendChild(child);
   });
   previewData = data.tracks[0].previewURL;
 };
-
-//Audio play
 
 const audioPlay = async (url) => {
   clearInterval(updateTimer);
@@ -85,7 +81,7 @@ const playandpause = () => {
   isplaying = !isplaying;
 };
 apiFetch();
-console.log(previewData);
+
 function setUpdate() {
   let seekPosition = 0;
   if (!isNaN(player.duration)) {
@@ -162,92 +158,40 @@ shuffle.onclick = () => {
   }
 };
 
-function addQueue() {
-  if (!queue_music.find((item) => item.id == music_list[track_index].id))
-    queue_music.push(
-      music_list.find((item) => item.id == music_list[track_index].id)
-    );
-}
-
-function showQueue() {
-  var x = document.getElementById("qd");
-  if (x.style.display === "none") {
-    x.style.display = "block";
-  } else {
-    x.style.display = "none";
-  }
-
-  const list = document.getElementById("qd");
-  list.innerHTML = "";
-  queue_music?.forEach((item, index) => {
-    const child = document.createElement("div");
-    const img = document.createElement("img");
-    const songname = document.createElement("h3");
-    const arname = document.createElement("h5");
-    songname.innerText = item.name;
-    arname.innerText = item.artistName;
-    child.appendChild(img);
-    child.appendChild(songname);
-    child.appendChild(arname);
-    child.style.padding='0.5rem'
-    child.onclick = () => {
-      track_index = index;
-      now_playing.innerText = item.name;
-      audioPlay(item.previewURL);
-    };
-    list.appendChild(child);
-  });
-}
-
 searchSongs.onkeydown = (event) => {
-  const inputData = event.target.value.toLowerCase().split(" ").join("");
-  const sd = document.getElementById("sd");
-  if (inputData) {
-    const searchedData = music_list.filter((item) =>
-      item.name
-        .toLowerCase()
-        .split(" ")
-        .join("")
-        .includes(event.target.value.toLowerCase().split(" ").join(""))
-    );
-
-    sd.innerHTML = "";
-    searchedData?.forEach((item, index) => {
-      const child = document.createElement("div");
-      const img = document.createElement("img");
-      const songname = document.createElement("h3");
-      const arname = document.createElement("h5");
-      songname.innerText = item.name;
-      arname.innerText = item.artistName;
-      child.appendChild(img);
-      child.appendChild(songname);
-      child.appendChild(arname);
-      child.style.padding='0.5rem'
-      child.onclick = () => {
-        track_index = index;
-        now_playing.innerText = item.name;
-        audioPlay(item.previewURL);
-      };
-      // const list = document.getElementById("music_list");
-      // an.appendChild(child);
-      sd.appendChild(child);
-    });
-  } else {
-    sd.innerHTML = "";
-  }
-};
-
-const addToPlaylist = () => {
-  const currentsong = music_list[track_index];
-  if (localStorage) {
-    let data = JSON.parse(localStorage.getItem("playlist"));
-    console.log(data, "data");
-    if (!data) {
-      data = [];
+    const inputData = event.target.value.toLowerCase().split(" ").join("");
+    const sd = document.getElementById("sd");
+    if (inputData) {
+      const searchedData = music_list.filter((item) =>
+        item.name
+          .toLowerCase()
+          .split(" ")
+          .join("")
+          .includes(event.target.value.toLowerCase().split(" ").join(""))
+      );
+  
+      sd.innerHTML = "";
+      searchedData?.forEach((item, index) => {
+        const child = document.createElement("div");
+        const img = document.createElement("img");
+        const songname = document.createElement("h3");
+        const arname = document.createElement("h5");
+        songname.innerText = item.name;
+        arname.innerText = item.artistName;
+        child.appendChild(img);
+        child.appendChild(songname);
+        child.appendChild(arname);
+        child.style.padding='0.5rem'
+        child.onclick = () => {
+          track_index = index;
+          now_playing.innerText = item.name;
+          audioPlay(item.previewURL);
+        };
+        // const list = document.getElementById("music_list");
+        // an.appendChild(child);
+        sd.appendChild(child);
+      });
+    } else {
+      sd.innerHTML = "";
     }
-    if (!data.find((item) => item.id == currentsong.id)) {
-      data.push(currentsong);
-      localStorage.setItem("playlist", JSON.stringify(data));
-    }
-  }
-};
+  };
